@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>I'm sorry</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff4f0;--ink:#3b1f2b;--soft:#8a5a6a;--pink:#e5476d;--btn:#3b1f2b;--btntxt:#fff4f0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241320;--ink:#ffe9ee;--soft:#c79aac;--pink:#ff7a9a;--btn:#ffe9ee;--btntxt:#241320}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}body{height:100dvh;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+main{padding:24px;max-width:560px}
+h1{font-size:clamp(3rem,13vw,6.5rem);font-weight:800;line-height:.95;margin:0 0 .3em;letter-spacing:-.03em}
+h1 span{display:inline-block;animation:wob 3s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(-3deg) translateY(-4px)}}
+p{font-size:1.15rem;line-height:1.5;color:var(--soft);margin:0 0 1.6em}
+.q{font-size:1.5rem;font-weight:500;color:var(--ink);margin-bottom:1em}
+.row{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:center;min-height:120px}
+button{font:inherit;font-weight:800;border:0;border-radius:999px;cursor:pointer;padding:.9em 1.6em;min-height:48px;background:var(--btn);color:var(--btntxt);transition:transform .25s}
+#yes{background:var(--pink);color:#fff;font-size:1.1rem;transform:scale(var(--s,1))}
+#yes:focus-visible,#no:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+#no{position:relative;z-index:2;transition:left .25s,top .25s}
+#no.run{position:fixed}
+.heart{position:fixed;font-size:2rem;pointer-events:none;z-index:9;animation:fly 1.6s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+#done{display:none}
+@media (prefers-reduced-motion:reduce){h1 span{animation:none}.heart{animation-duration:.01s}}
+</style>
+</head>
+<body>
+<main id="ask">
+  <h1><span>I'm</span> <span style="animation-delay:.2s">sorry.</span></h1>
+  <p id="msg">I messed up big time and I know it. There's no excuse for what I did, and I hate that I hurt you.</p>
+  <div class="q" id="q">Can you forgive me?</div>
+  <div class="row"><button id="yes">Yes, you're forgiven</button><button id="no">No</button></div>
+</main>
+<main id="done">
+  <h1>Thank you.</h1>
+  <p id="end">I'll do better. Promise.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id),p=new URLSearchParams(location.search);
+const to=p.get("to"),from=p.get("from");
+if(to)$("q").textContent=to+", can you forgive me?";
+if(p.get("msg"))$("msg").textContent=p.get("msg");
+if(from)$("end").textContent="I'll do better. Promise. - "+from;
+const yes=$("yes"),no=$("no");
+const TOPIC="Ethan123456789";
+const ping=t=>{if(p.has("test"))return;try{fetch("https://ntfy.sh/"+TOPIC,{method:"POST",body:t,keepalive:true})}catch(e){}};
+ping("She opened the page");
+const lines=["No","Are you sure?","Really?","Please?","Wrong button","Nice try","Okay, you caught me"];
+let n=0;
+function dodge(e){
+  if(e&&e.preventDefault)e.preventDefault();
+  n++;
+  ping("Tapped No (#"+n+")");
+  yes.style.setProperty("--s",Math.min(1+n*.12,1.7));
+  if(n>=lines.length){no.style.display="none";$("q").textContent="Looks like there's only one option now.";return}
+  no.textContent=lines[n];
+  no.classList.add("run");
+  const w=innerWidth-no.offsetWidth-24,h=innerHeight-no.offsetHeight-24;
+  no.style.left=12+Math.random()*w+"px";
+  no.style.top=12+Math.random()*h+"px";
+}
+no.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse")dodge(e)});
+no.addEventListener("pointerdown",dodge);
+no.addEventListener("click",e=>{if(e.detail===0)dodge(e)});
+yes.addEventListener("click",()=>{
+  ping("She tapped YES");
+  $("ask").style.display="none";$("done").style.display="block";
+  for(let i=0;i<40;i++){
+    const h=document.createElement("div");h.className="heart";
+    h.textContent=["💖","💗","✨","🌷"][i%4];
+    h.style.left=innerWidth/2+"px";h.style.top=innerHeight/2+"px";
+    h.style.setProperty("--x",(Math.random()-.5)*innerWidth+"px");
+    h.style.setProperty("--y",(Math.random()-.8)*innerHeight+"px");
+    h.style.setProperty("--r",(Math.random()-.5)*720+"deg");
+    document.body.appendChild(h);setTimeout(()=>h.remove(),1700);
+  }
+});
+</script>
+</body>
+</html>
